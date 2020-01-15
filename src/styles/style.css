@@ -1,6 +1,72 @@
-#root {
+* {
   font-family: monospace;
 }
+
+body {
+  height: 92vh;
+  border: 2px solid black;
+  padding: 1em;
+}
+
 h1 {
   color: green;
+  margin: 0;
+}
+
+p {
+  margin: 0.5em 0;
+}
+
+#display {
+  display: flex;
+  justify-content: space-around;
+}
+
+.display-component {
+  position: relative;
+  padding: 8px;
+}
+
+#turtle-display {
+  border: 2px solid black;
+  height: 83vh;
+  width: 70vw;
+  margin-right: 1em;
+}
+
+#side-bar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+#history {
+  border: 2px solid black;
+  height: 65%;
+  margin-bottom: 1em;
+}
+
+#console {
+  border: 2px solid black;
+  height: 29.5%;
+  width: 23vw;
+}
+
+textarea {
+  resize: none;
+  border: none;
+  outline: none;
+  height: 85%;
+  width: 85%;
+}
+
+#run-button {
+  font-size: 16px;
+  height: 3em;
+  width: 4em;
+  border-radius: 25%;
+  outline: none;
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
 }
