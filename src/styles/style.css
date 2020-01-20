@@ -46,6 +46,11 @@ p {
   margin-bottom: 1em;
 }
 
+ul {
+  padding: 0px;
+  list-style: none;
+}
+
 #console {
   border: 2px solid black;
   height: 29.5%;
