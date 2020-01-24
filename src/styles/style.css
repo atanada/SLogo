@@ -27,11 +27,19 @@ p {
   padding: 8px;
 }
 
-#turtle-display {
+#bird-display {
   border: 2px solid black;
   height: 83vh;
   width: 70vw;
   margin-right: 1em;
+  position: relative;
+}
+
+svg {
+  width: 40px;
+  position: relative;
+  left: 50%;
+  top: 50%;
 }
 
 #side-bar {
