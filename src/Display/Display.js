@@ -52,7 +52,7 @@ CommandHistory.contextType = UserInputProcessingContext
 const BIRD_SIZE = 40
 const CANVAS_WIDTH = 1060
 const CANVAS_HEIGHT = 600
-const CENTER = {x: CANVAS_WIDTH/2, y: CANVAS_HEIGHT/2}
+const CENTER = {x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2}
 var canvas = null
 var ctx = null
 
@@ -86,6 +86,10 @@ class Display extends React.Component {
     this.state = {
       userInput: "",
       userHistoryList: [],
+      startingPoint: {
+        x: CENTER.x,
+        y: CENTER.y
+      },
       birdPosition: {
         top: CANVAS_HEIGHT / 2 - BIRD_SIZE / 2,
         left: CANVAS_WIDTH / 2 - BIRD_SIZE / 2,
@@ -106,9 +110,13 @@ class Display extends React.Component {
   drawShape(userInput) {
     if (userInput === "forward") {
       ctx.beginPath()
-      ctx.moveTo(CENTER.x, CENTER.y)
-      ctx.lineTo(CENTER.x, CENTER.y - 100)
+      ctx.moveTo(this.state.startingPoint.x, this.state.startingPoint.y)
+      ctx.lineTo(this.state.startingPoint.x, this.state.startingPoint.y - 100)
       this.setState({
+        startingPoint: {
+          x: this.state.startingPoint.x,
+          y: this.state.startingPoint.y - 100,
+        },
         birdPosition: {
           top: this.state.birdPosition.top - 100,
           left: this.state.birdPosition.left,
@@ -116,6 +124,8 @@ class Display extends React.Component {
         }
       })
       ctx.stroke()
+    } else {
+      alert("invalid command")
     }
   }
 

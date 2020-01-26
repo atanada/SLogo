@@ -3,9 +3,7 @@ import ReactDOM from 'react-dom'
 
 const commandLibrary =
   {
-    "forward": [
-      distance
-    ],
+    "forward": {},
     // "forward": [
     //   "fd"
     // ],
