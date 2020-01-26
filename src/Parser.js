@@ -1,7 +1,9 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
-import
+import {userInput} from './Display/Display.js'
+import {commandLibrary} from 'CommandList.js'
 
-class Parser {
-
+const Parser = {
+  // the direction is a key to the commandLibrary
+  // commandLibrary.userInput.direction
 }

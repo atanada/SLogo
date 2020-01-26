@@ -3,7 +3,7 @@
 }
 
 body {
-  height: 92vh;
+  height: 675px;
   border: 2px solid black;
   padding: 1em;
 }
@@ -19,7 +19,7 @@ p {
 
 #display {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
 }
 
 .display-component {
@@ -29,17 +29,15 @@ p {
 
 #bird-display {
   border: 2px solid black;
-  height: 83vh;
-  width: 70vw;
+  height: 600px;
+  width: 1060px;
   margin-right: 1em;
   position: relative;
 }
 
 svg {
   width: 40px;
-  position: relative;
-  left: 50%;
-  top: 50%;
+  position: absolute;
 }
 
 #side-bar {

@@ -13,7 +13,7 @@ class Console extends React.Component {
         <textarea
           placeholder="enter a command..."
           autoFocus={true}
-          value={this.context.userInputValues.userInput}
+          value={this.context.statefulValues.userInput}
           onChange={() => this.context.updateUserInput()}
         >
         </textarea>
@@ -33,10 +33,10 @@ class CommandHistory extends React.Component {
   render() {
     return (
       <div id="history" className="display-component">
-          command history
+          Command History
           <ul>
             {
-              this.context.userInputValues.userHistoryList.map((command) =>
+              this.context.statefulValues.userHistoryList.map((command) =>
                 <li key={COMMAND_LIST_KEYS+=1}>
                   { command }
                 </li>
@@ -49,15 +49,52 @@ class CommandHistory extends React.Component {
 }
 CommandHistory.contextType = UserInputProcessingContext
 
+const BIRD_SIZE = 40
+const CANVAS_WIDTH = 1060
+const CANVAS_HEIGHT = 600
+const CENTER = {x: CANVAS_WIDTH/2, y: CANVAS_HEIGHT/2}
+var canvas = null
+var ctx = null
+
+class BirdCanvas extends React.Component {
+
+  componentDidMount() {
+    canvas = this.refs.birdDisplay
+    ctx = canvas.getContext("2d")
+  }
+
+  render () {
+    return (
+      <div id="bird-display">
+        <canvas
+          ref="birdDisplay"
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
+        />
+        <BirdIcon
+          style={this.context.statefulValues.birdPosition}
+        />
+      </div>
+    )
+  }
+}
+BirdCanvas.contextType = UserInputProcessingContext
+
 class Display extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
       userInput: "",
-      userHistoryList: []
+      userHistoryList: [],
+      birdPosition: {
+        top: CANVAS_HEIGHT / 2 - BIRD_SIZE / 2,
+        left: CANVAS_WIDTH / 2 - BIRD_SIZE / 2,
+        transform: null,
+      }
     }
     this.updateUserInput = this.updateUserInput.bind(this)
     this.submitUserInput = this.submitUserInput.bind(this)
+    this.drawShape = this.drawShape.bind(this)
   }
 
   updateUserInput () {
@@ -66,7 +103,24 @@ class Display extends React.Component {
     })
   }
 
+  drawShape(userInput) {
+    if (userInput === "forward") {
+      ctx.beginPath()
+      ctx.moveTo(CENTER.x, CENTER.y)
+      ctx.lineTo(CENTER.x, CENTER.y - 100)
+      this.setState({
+        birdPosition: {
+          top: this.state.birdPosition.top - 100,
+          left: this.state.birdPosition.left,
+          transform: `rotate(${90}deg)`,
+        }
+      })
+      ctx.stroke()
+    }
+  }
+
   submitUserInput () {
+    this.drawShape(this.state.userInput)
     this.setState({
       userHistoryList: this.state.userHistoryList.concat(this.state.userInput),
       userInput: ""
@@ -75,7 +129,7 @@ class Display extends React.Component {
 
   render () {
     const userInputProcessing = {
-      userInputValues: this.state,
+      statefulValues: this.state,
       updateUserInput: this.updateUserInput,
       submitUserInput: this.submitUserInput,
     }
@@ -88,9 +142,7 @@ class Display extends React.Component {
               <h1>SLogo</h1>
               <p>A simple version of Logo</p>
             </div>
-            <div id="bird-display">
-              <BirdIcon />
-            </div>
+            <BirdCanvas />
           </div>
           <div id="side-bar">
             <CommandHistory />
