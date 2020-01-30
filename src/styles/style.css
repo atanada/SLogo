@@ -32,11 +32,17 @@ p {
   height: 600px;
   width: 1060px;
   margin-right: 1em;
-  position: relative;
 }
 
-svg {
-  width: 40px;
+#drawingLayer {
+  z-index: 0;
+}
+
+#birdLayer {
+  z-index: 1;
+}
+
+canvas {
   position: absolute;
 }
 

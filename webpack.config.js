@@ -13,19 +13,16 @@ module.exports = {
         use: ['style-loader', 'css-loader']
       },
       {
-        test: /\.svg$/,
+        test: /\.(png|jpe?g|gif)$/i,
         use: [
           {
-            loader: 'babel-loader',
-          },
-          {
-            loader: 'react-svg-loader',
+            loader: 'url-loader',
             options: {
-              jsx: true
-            }
-          }
-        ]
-      }
+              limit: 8192,
+            },
+          },
+        ],
+      },
     ]
   },
   resolve: {

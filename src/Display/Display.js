@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
 import '../styles/style.css'
-import BirdIcon from '../icons/bird.svg'
+import birdImgPath from '../icons/bird.png'
 
 var COMMAND_LIST_KEYS = 0
 const UserInputProcessingContext = React.createContext()
@@ -55,24 +55,35 @@ const CANVAS_HEIGHT = 600
 const CENTER = {x: CANVAS_WIDTH / 2, y: CANVAS_HEIGHT / 2}
 var canvas = null
 var ctx = null
+var canvasBird = null
+var ctxBird = null
+const birdIcon = new Image()
+birdIcon.src = birdImgPath
 
 class BirdCanvas extends React.Component {
 
   componentDidMount() {
-    canvas = this.refs.birdDisplay
+    canvas = this.refs.drawingLayer
     ctx = canvas.getContext("2d")
+    canvasBird = this.refs.birdLayer
+    ctxBird = canvasBird.getContext("2d")
+    ctxBird.drawImage(birdIcon, CENTER.x - BIRD_SIZE / 2, CENTER.y - BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
   }
 
   render () {
     return (
       <div id="bird-display">
         <canvas
-          ref="birdDisplay"
+          ref="drawingLayer"
+          id="drawingLayer"
           width={CANVAS_WIDTH}
           height={CANVAS_HEIGHT}
         />
-        <BirdIcon
-          style={this.context.statefulValues.birdPosition}
+        <canvas
+          ref="birdLayer"
+          id="birdLayer"
+          width={CANVAS_WIDTH}
+          height={CANVAS_HEIGHT}
         />
       </div>
     )
@@ -86,19 +97,16 @@ class Display extends React.Component {
     this.state = {
       userInput: "",
       userHistoryList: [],
-      startingPoint: {
+      startPosition: {
         x: CENTER.x,
-        y: CENTER.y
+        y: CENTER.y,
+        angle: 0,
       },
-      birdPosition: {
-        top: CANVAS_HEIGHT / 2 - BIRD_SIZE / 2,
-        left: CANVAS_WIDTH / 2 - BIRD_SIZE / 2,
-        transform: null,
-      }
     }
     this.updateUserInput = this.updateUserInput.bind(this)
     this.submitUserInput = this.submitUserInput.bind(this)
     this.drawShape = this.drawShape.bind(this)
+    this.parseInput = this.parseInput.bind(this)
   }
 
   updateUserInput () {
@@ -107,30 +115,119 @@ class Display extends React.Component {
     })
   }
 
-  drawShape(userInput) {
-    if (userInput === "forward") {
+  drawShape(parsedInput) {
+    const direction = parsedInput[0]
+    var distance = parsedInput[1]
+    // this.state.startPosition.angle < 0 || this.state.startPosition.angle > 180
+    //   ? (
+    //     distance = parsedInput[1]
+    //     )
+    //   : (
+    //     distance = parsedInput[1]
+    //     )
+    const degree = (this.state.startPosition.angle * Math.PI) / 180
+    console.log("angle  ", this.state.startPosition.angle)
+
+    var xDist = distance * Math.sin(degree)
+    var yDist = distance * Math.cos(degree)
+
+
+
+    if (direction === "forward" || direction === "fd") {
+      var newX = this.state.startPosition.x + xDist
+      var newY = this.state.startPosition.y - yDist
+      var xBird = newX - BIRD_SIZE / 2
+      var yBird = newY - BIRD_SIZE / 2
+
       ctx.beginPath()
-      ctx.moveTo(this.state.startingPoint.x, this.state.startingPoint.y)
-      ctx.lineTo(this.state.startingPoint.x, this.state.startingPoint.y - 100)
+      ctx.moveTo(this.state.startPosition.x, this.state.startPosition.y)
+      ctx.lineTo(newX, newY)
+      ctxBird.clearRect(0, 0, canvasBird.width, canvasBird.height)
+      ctxBird.drawImage(birdIcon, xBird, yBird, BIRD_SIZE, BIRD_SIZE)
+      console.log("new x, y", newX, " - ", newY)
+      console.log("bird x, y", xBird, " - ", yBird)
+      ctx.stroke()
       this.setState({
-        startingPoint: {
-          x: this.state.startingPoint.x,
-          y: this.state.startingPoint.y - 100,
+        startPosition: {
+          x: newX,
+          y: newY,
+          angle: this.state.startPosition.angle,
+        }
+      })
+
+    } else if (direction === "back" || direction === "bk") {
+      const newX = this.state.startPosition.x + xDist
+      const newY = this.state.startPosition.y + yDist
+      ctx.beginPath()
+      ctx.moveTo(this.state.startPosition.x, this.state.startPosition.y)
+      ctx.lineTo(newX, newY)
+      this.setState({
+        startPosition: {
+          x: newX,
+          y: newY,
+          angle: this.state.startPosition.angle,
         },
         birdPosition: {
-          top: this.state.birdPosition.top - 100,
-          left: this.state.birdPosition.left,
-          transform: `rotate(${90}deg)`,
+          left: newX,
+          top: newY,
+          transform: this.state.birdPosition.transform,
         }
       })
       ctx.stroke()
+    } else if (direction === "right" || direction === "rt") {
+      const newAngle = this.state.startPosition.angle + distance
+      this.setState({
+        startPosition: {
+          x: this.state.startPosition.x,
+          y: this.state.startPosition.y,
+          angle: newAngle
+        },
+        // birdPosition: {
+        //   left: this.state.birdPosition.left,
+        //   top: this.state.birdPosition.top,
+        //   transform: `rotate(${newAngle}deg)`,
+        // }
+      })
+    } else if (direction === "left" || direction === "lt") {
+      const newAngle = this.state.startPosition.angle - distance
+      this.setState({
+        startPosition: {
+          x: this.state.startPosition.x,
+          y: this.state.startPosition.y,
+          angle: newAngle
+        },
+        birdPosition: {
+          left: this.state.birdPosition.left,
+          top: this.state.birdPosition.top,
+          transform: `rotate(${newAngle}deg)`,
+        }
+      })
+    } else if (direction === "home") {
+      this.setState({
+        startPosition: {
+          x: CENTER.x,
+          y: CENTER.y,
+          angle: 0,
+        },
+        birdPosition: {
+          left: CANVAS_WIDTH / 2 - BIRD_SIZE / 2,
+          top: CANVAS_HEIGHT / 2 - BIRD_SIZE / 2,
+          transform: `rotate(${0}deg)`,
+        }
+      })
     } else {
       alert("invalid command")
     }
   }
 
+  parseInput(userInput) {
+    const parsedInput = userInput.split(" ")
+    parsedInput[1] = parseInt(parsedInput[1], 10)
+    this.drawShape(parsedInput)
+  }
+
   submitUserInput () {
-    this.drawShape(this.state.userInput)
+    this.parseInput(this.state.userInput)
     this.setState({
       userHistoryList: this.state.userHistoryList.concat(this.state.userInput),
       userInput: ""
