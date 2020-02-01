@@ -203,17 +203,49 @@ class Display extends React.Component {
     const lineBreakParse = userInput.split("\n")
     this.drawShape(lineBreakParse)
   }
-  // commands still needed:
-  // repeat
-  // for
-  // pen up
-  // pen down
 
   drawShape(lineBreakParse) {
-    for (var i = 0; i < lineBreakParse.length; i++) {
-      let parsedInput = lineBreakParse[i].split(" ")
-      let distance = parseInt(parsedInput[1], 10)
-      let direction = parsedInput[0]
+    var userCommandsNotParsed = lineBreakParse
+    var userCommands = lineBreakParse
+    console.log("to parse: ",lineBreakParse)
+    for (var commandIndex = 0; commandIndex < lineBreakParse.length; commandIndex++) {
+      if (lineBreakParse[commandIndex].includes("repeat")) {
+        userCommandsNotParsed = lineBreakParse.join(" ")
+        const preNumRepeats =
+          userCommandsNotParsed.slice(
+            userCommandsNotParsed.indexOf("repeat") + "repeat".length + 1,
+            userCommandsNotParsed.indexOf("["),
+          )
+        console.log("repeat str", preNumRepeats)
+        let numberRepeats = parseInt(preNumRepeats, 10)
+        let beingIndex = userCommandsNotParsed.indexOf("[" || "[ ") + 1
+        let endIndex = userCommandsNotParsed.indexOf("]")
+        typeof numberRepeats != "number"
+          ? alert("invalid 'repeat' command format")
+          : null
+        const repeatCommands = userCommandsNotParsed.slice(beingIndex, endIndex)
+        // console.log("start", beingIndex, "end", endIndex)
+        // console.log("the repeat commands: ", repeatCommands)
+        // console.log("num repeats:", numberRepeats)
+        userCommands = [
+          ...Array(numberRepeats).fill(repeatCommands)
+        ]
+        break
+      }
+    }
+    const finalCommandArray = []
+    for (let ind = 0; ind < userCommands.length; ind++) {
+      var intermediate = userCommands[ind].split(" ")
+      console.log("interm", intermediate)
+      for (let subCommand = 0; subCommand < intermediate.length; subCommand++) {
+        if (/^[a-zA-Z]+$/.test(intermediate[subCommand])) {
+          finalCommandArray.push([intermediate[subCommand], intermediate[subCommand + 1]])
+        }
+      }
+    }
+    for (var i = 0; i < finalCommandArray.length; i++) {
+      let distance = parseInt(finalCommandArray[i][1], 10)
+      let direction = finalCommandArray[i][0]
 
       if (direction === "forward" || direction === "fd") {
         this.forwardMove(birdPosition, distance)
@@ -229,7 +261,7 @@ class Display extends React.Component {
         ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
         this.homeMove()
       } else {
-        alert(direction + "is an invalid command")
+        alert(direction + " is not a valid command")
       }
     }
     this.setState({

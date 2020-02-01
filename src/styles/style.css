@@ -55,6 +55,7 @@ canvas {
 #history {
   border: 2px solid black;
   height: 65%;
+  width: 23vw;
   margin-bottom: 1em;
 }
 
