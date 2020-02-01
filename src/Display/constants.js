@@ -1,0 +1,16 @@
+const BIRD_SIZE = 40
+const CANVAS_WIDTH = 1060
+const CANVAS_HEIGHT = 600
+const STARTING_ANGLE = 0
+const CENTER = {
+  x: CANVAS_WIDTH / 2,
+  y: CANVAS_HEIGHT / 2
+}
+
+export {
+  BIRD_SIZE,
+  CANVAS_WIDTH,
+  CANVAS_HEIGHT,
+  STARTING_ANGLE,
+  CENTER,
+}

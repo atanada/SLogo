@@ -1,82 +1,66 @@
 import React from 'react'
-import ReactDOM from 'react-dom'
 import '../styles/style.css'
-import birdImgPath from '../icons/bird.png'
 
-var COMMAND_LIST_KEYS = 0
-const UserInputProcessingContext = React.createContext()
+import {UserInputProcessingContext} from './UserInputProcessingContext'
 
-class Console extends React.Component {
-  render () {
-    return (
-      <div id="console" className="display-component">
-        <textarea
-          placeholder="enter a command..."
-          autoFocus={true}
-          value={this.context.statefulValues.userInput}
-          onChange={() => this.context.updateUserInput()}
-        >
-        </textarea>
-        <button
-          id="run-button"
-          onClick={() => this.context.submitUserInput()}
-        >
-          Run
-        </button>
-      </div>
-    )
+import {Console} from './Console'
+import {CommandHistory} from './CommandHistory'
+import {BIRD_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_ANGLE, CENTER} from './constants';
+import {birdIcon, Bird} from './BirdImage'
+import {Point} from './Point'
+
+class BaseLayer {
+  init(context) {
+    this.context = context
+  }
+
+  clear() {
+    this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  }
+
+  drawLine(start, end) {
+    this.context.beginPath()
+    this.context.moveTo(start.x, start.y)
+    this.context.lineTo(end.x, end.y)
+    this.context.stroke()
   }
 }
-Console.contextType = UserInputProcessingContext
+const baseLayer = new BaseLayer()
 
-class CommandHistory extends React.Component {
-  render() {
-    return (
-      <div id="history" className="display-component">
-          Command History
-          <ul>
-            {
-              this.context.statefulValues.userHistoryList.map((command) =>
-                <li key={COMMAND_LIST_KEYS+=1}>
-                  { command }
-                </li>
-              )
-            }
-          </ul>
-      </div>
-    )
+class BirdLayer {
+  init(context) {
+    this.context = context
+  }
+
+  clear() {
+    this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+  }
+
+  draw() {
+    this.context.save()
+    this.context.translate(Bird.x, Bird.y)
+    this.context.rotate(Bird.getAngleInRadians())
+    this.context.drawImage(
+        birdIcon,
+        -BIRD_SIZE / 2, -BIRD_SIZE / 2,
+        BIRD_SIZE, BIRD_SIZE)
+    this.context.restore()
+  }
+
+  redraw() {
+    this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    this.draw()
   }
 }
-CommandHistory.contextType = UserInputProcessingContext
+const birdLayer = new BirdLayer()
 
-const BIRD_SIZE = 40
-const CANVAS_WIDTH = 1060
-const CANVAS_HEIGHT = 600
-const STARTING_ANGLE = 0
-const CENTER = {
-  x: CANVAS_WIDTH / 2,
-  y: CANVAS_HEIGHT / 2
-}
-var canvas = null
-var ctx = null
-var canvasBird = null
-var ctxBird = null
-const birdIcon = new Image()
-birdIcon.src = birdImgPath
-var birdPosition = {
-  x: CENTER.x,
-  y: CENTER.y,
-  angle: STARTING_ANGLE,
-}
-
-class BirdCanvas extends React.Component {
+class CanvasComponent extends React.Component {
   componentDidMount() {
-    canvas = this.refs.drawingLayer
-    ctx = canvas.getContext("2d")
-    canvasBird = this.refs.birdLayer
-    ctxBird = canvasBird.getContext("2d")
-    ctxBird.drawImage(birdIcon, CENTER.x - BIRD_SIZE / 2, CENTER.y - BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
+    baseLayer.init(this.refs.drawingLayer.getContext('2d'))
+    birdLayer.init(this.refs.birdLayer.getContext('2d'))
+    birdLayer.draw()
   }
+
   render () {
     return (
       <div id="bird-display">
@@ -96,13 +80,13 @@ class BirdCanvas extends React.Component {
     )
   }
 }
-BirdCanvas.contextType = UserInputProcessingContext
+CanvasComponent.contextType = UserInputProcessingContext
 
 class Display extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userInput: "",
+      userInput: "repeat 4 [forward 90 right 90]", // TODO - remove after testing
       userHistoryList: [],
       startPosition: {
         x: CENTER.x,
@@ -122,81 +106,31 @@ class Display extends React.Component {
     })
   }
 
-  forwardMove(position, distance) {
-    const degree = (position.angle * Math.PI) / 180
-    var xDist = distance * Math.sin(degree)
-    var yDist = distance * Math.cos(degree)
-    var newX = position.x + xDist
-    var newY = position.y - yDist
-    ctx.beginPath()
-    ctx.moveTo(position.x, position.y)
-    ctx.lineTo(newX, newY)
-    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    ctxBird.save()
-    ctxBird.translate(newX, newY)
-    ctxBird.rotate(degree)
-    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
-    ctxBird.restore()
-    ctx.stroke()
-    birdPosition.x = newX
-    birdPosition.y = newY
+  forwardMove(distance) {
+    const originalPosition = Bird.getPosition()
+    Bird.moveForward(distance)
+    const newPosition = Bird.getPosition()
+
+    baseLayer.drawLine(originalPosition, newPosition)
+    birdLayer.redraw()
   }
 
-  backMove(position, distance) {
-    const degree = (position.angle * Math.PI) / 180
-    let revDegree = ((position.angle + 180) * Math.PI) / 180
-    var xDist = distance * Math.sin(revDegree)
-    var yDist = distance * Math.cos(revDegree)
-    var newX = position.x + xDist
-    var newY = position.y - yDist
-
-    ctx.beginPath()
-    ctx.moveTo(position.x, position.y)
-    ctx.lineTo(newX, newY)
-    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    ctxBird.save()
-    ctxBird.translate(newX, newY)
-    ctxBird.rotate(degree)
-    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
-    ctxBird.restore()
-    ctx.stroke()
-    birdPosition.x = newX
-    birdPosition.y = newY
+  backMove(distance) {
+    this.forwardMove(distance * -1)
   }
 
-  rightRotate(position, distance) {
-    let newAngle = position.angle + distance
-    const degree = (newAngle * Math.PI) / 180
-    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    ctxBird.save()
-    ctxBird.translate(position.x, position.y)
-    ctxBird.rotate(degree)
-    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
-    ctxBird.restore()
-    birdPosition.angle = newAngle
+  rightRotate(angle) {
+    Bird.angle += angle
+    birdLayer.redraw()
   }
 
-  leftRotate (position, distance) {
-    let newAngle = position.angle - distance
-    const degree = (newAngle * Math.PI) / 180
-
-    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    ctxBird.save()
-    ctxBird.translate(position.x , position.y )
-    ctxBird.rotate(degree)
-    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
-    ctxBird.restore()
-    birdPosition.angle = newAngle
+  leftRotate(angle) {
+    this.rightRotate(angle * -1)
   }
 
   homeMove () {
-    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-    ctxBird.drawImage(birdIcon, CENTER.x - BIRD_SIZE / 2, CENTER.y - BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
-    birdPosition = {
-      x: CENTER.x,
-      y: CENTER.y,
-      angle: STARTING_ANGLE,
-    }
+    Bird.reset()
+    birdLayer.redraw()
   }
 
   parseInput(userInput) {
@@ -205,10 +139,9 @@ class Display extends React.Component {
   }
 
   drawShape(lineBreakParse) {
-    var userCommandsNotParsed = lineBreakParse
-    var userCommands = lineBreakParse
-    console.log("to parse: ",lineBreakParse)
-    for (var commandIndex = 0; commandIndex < lineBreakParse.length; commandIndex++) {
+    let userCommandsNotParsed = lineBreakParse
+    let userCommands = lineBreakParse
+    for (let commandIndex = 0; commandIndex < lineBreakParse.length; commandIndex++) {
       if (lineBreakParse[commandIndex].includes("repeat")) {
         userCommandsNotParsed = lineBreakParse.join(" ")
         const preNumRepeats =
@@ -216,7 +149,6 @@ class Display extends React.Component {
             userCommandsNotParsed.indexOf("repeat") + "repeat".length + 1,
             userCommandsNotParsed.indexOf("["),
           )
-        console.log("repeat str", preNumRepeats)
         let numberRepeats = parseInt(preNumRepeats, 10)
         let beingIndex = userCommandsNotParsed.indexOf("[" || "[ ") + 1
         let endIndex = userCommandsNotParsed.indexOf("]")
@@ -224,9 +156,6 @@ class Display extends React.Component {
           ? alert("invalid 'repeat' command format")
           : null
         const repeatCommands = userCommandsNotParsed.slice(beingIndex, endIndex)
-        // console.log("start", beingIndex, "end", endIndex)
-        // console.log("the repeat commands: ", repeatCommands)
-        // console.log("num repeats:", numberRepeats)
         userCommands = [
           ...Array(numberRepeats).fill(repeatCommands)
         ]
@@ -235,30 +164,29 @@ class Display extends React.Component {
     }
     const finalCommandArray = []
     for (let ind = 0; ind < userCommands.length; ind++) {
-      var intermediate = userCommands[ind].split(" ")
-      console.log("interm", intermediate)
+      let intermediate = userCommands[ind].split(" ")
       for (let subCommand = 0; subCommand < intermediate.length; subCommand++) {
         if (/^[a-zA-Z]+$/.test(intermediate[subCommand])) {
           finalCommandArray.push([intermediate[subCommand], intermediate[subCommand + 1]])
         }
       }
     }
-    for (var i = 0; i < finalCommandArray.length; i++) {
+    for (let i = 0; i < finalCommandArray.length; i++) {
       let distance = parseInt(finalCommandArray[i][1], 10)
       let direction = finalCommandArray[i][0]
 
       if (direction === "forward" || direction === "fd") {
-        this.forwardMove(birdPosition, distance)
+        this.forwardMove(distance)
       } else if (direction === "back" || direction === "bk") {
-        this.backMove(birdPosition, distance)
+        this.backMove(distance)
       } else if (direction === "right" || direction === "rt") {
-        this.rightRotate(birdPosition, distance)
+        this.rightRotate(distance)
       } else if (direction === "left" || direction === "lt") {
-        this.leftRotate(birdPosition, distance)
+        this.leftRotate(distance)
       } else if (direction == "home") {
         this.homeMove()
       } else if (direction == "clear") {
-        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+        baseLayer.clear()
         this.homeMove()
       } else {
         alert(direction + " is not a valid command")
@@ -266,9 +194,9 @@ class Display extends React.Component {
     }
     this.setState({
       startPosition: {
-        x: birdPosition.x,
-        y: birdPosition.y,
-        angle: birdPosition.angle,
+        x: Bird.x,
+        y: Bird.y,
+        angle: Bird.angle,
       }
     })
   }
@@ -296,7 +224,7 @@ class Display extends React.Component {
               <h1>SLogo</h1>
               <p>A simple version of Logo</p>
             </div>
-            <BirdCanvas />
+            <CanvasComponent />
           </div>
           <div id="side-bar">
             <CommandHistory />
