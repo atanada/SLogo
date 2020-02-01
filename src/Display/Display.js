@@ -52,6 +52,7 @@ CommandHistory.contextType = UserInputProcessingContext
 const BIRD_SIZE = 40
 const CANVAS_WIDTH = 1060
 const CANVAS_HEIGHT = 600
+const STARTING_ANGLE = 0
 const CENTER = {
   x: CANVAS_WIDTH / 2,
   y: CANVAS_HEIGHT / 2
@@ -62,10 +63,13 @@ var canvasBird = null
 var ctxBird = null
 const birdIcon = new Image()
 birdIcon.src = birdImgPath
-
+var birdPosition = {
+  x: CENTER.x,
+  y: CENTER.y,
+  angle: STARTING_ANGLE,
+}
 
 class BirdCanvas extends React.Component {
-
   componentDidMount() {
     canvas = this.refs.drawingLayer
     ctx = canvas.getContext("2d")
@@ -73,7 +77,6 @@ class BirdCanvas extends React.Component {
     ctxBird = canvasBird.getContext("2d")
     ctxBird.drawImage(birdIcon, CENTER.x - BIRD_SIZE / 2, CENTER.y - BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
   }
-
   render () {
     return (
       <div id="bird-display">
@@ -119,119 +122,123 @@ class Display extends React.Component {
     })
   }
 
-  drawShape(parsedInput) {
-    const direction = parsedInput[0]
-    var distance = parsedInput[1]
-    const degree = (this.state.startPosition.angle * Math.PI) / 180
+  forwardMove(position, distance) {
+    const degree = (position.angle * Math.PI) / 180
+    var xDist = distance * Math.sin(degree)
+    var yDist = distance * Math.cos(degree)
+    var newX = position.x + xDist
+    var newY = position.y - yDist
+    ctx.beginPath()
+    ctx.moveTo(position.x, position.y)
+    ctx.lineTo(newX, newY)
+    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    ctxBird.save()
+    ctxBird.translate(newX, newY)
+    ctxBird.rotate(degree)
+    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
+    ctxBird.restore()
+    ctx.stroke()
+    birdPosition.x = newX
+    birdPosition.y = newY
+  }
 
-    if (direction === "forward" || direction === "fd") {
-      var xDist = distance * Math.sin(degree)
-      var yDist = distance * Math.cos(degree)
-      var newX = this.state.startPosition.x + xDist
-      var newY = this.state.startPosition.y - yDist
+  backMove(position, distance) {
+    const degree = (position.angle * Math.PI) / 180
+    let revDegree = ((position.angle + 180) * Math.PI) / 180
+    var xDist = distance * Math.sin(revDegree)
+    var yDist = distance * Math.cos(revDegree)
+    var newX = position.x + xDist
+    var newY = position.y - yDist
 
-      ctx.beginPath()
-      ctx.moveTo(this.state.startPosition.x, this.state.startPosition.y)
-      ctx.lineTo(newX, newY)
-      ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctxBird.save()
-      ctxBird.translate(newX, newY)
-      ctxBird.rotate(degree)
-      ctxBird.drawImage(birdIcon, -BIRD_SIZE/2, -BIRD_SIZE/2, BIRD_SIZE, BIRD_SIZE)
-      ctxBird.restore()
-      ctx.stroke()
+    ctx.beginPath()
+    ctx.moveTo(position.x, position.y)
+    ctx.lineTo(newX, newY)
+    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    ctxBird.save()
+    ctxBird.translate(newX, newY)
+    ctxBird.rotate(degree)
+    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
+    ctxBird.restore()
+    ctx.stroke()
+    birdPosition.x = newX
+    birdPosition.y = newY
+  }
 
-      this.setState({
-        startPosition: {
-          x: newX,
-          y: newY,
-          angle: this.state.startPosition.angle,
-        }
-      })
+  rightRotate(position, distance) {
+    let newAngle = position.angle + distance
+    const degree = (newAngle * Math.PI) / 180
+    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    ctxBird.save()
+    ctxBird.translate(position.x, position.y)
+    ctxBird.rotate(degree)
+    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
+    ctxBird.restore()
+    birdPosition.angle = newAngle
+  }
 
-    } else if (direction === "back" || direction === "bk") {
-      let revDegree = ((this.state.startPosition.angle + 180) * Math.PI) / 180
-      var xDist = distance * Math.sin(revDegree)
-      var yDist = distance * Math.cos(revDegree)
-      var newX = this.state.startPosition.x + xDist
-      var newY = this.state.startPosition.y - yDist
+  leftRotate (position, distance) {
+    let newAngle = position.angle - distance
+    const degree = (newAngle * Math.PI) / 180
 
-      ctx.beginPath()
-      ctx.moveTo(this.state.startPosition.x, this.state.startPosition.y)
-      ctx.lineTo(newX, newY)
-      ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctxBird.save()
-      ctxBird.translate(newX, newY)
-      ctxBird.rotate(degree)
-      ctxBird.drawImage(birdIcon, -BIRD_SIZE/2, -BIRD_SIZE/2, BIRD_SIZE, BIRD_SIZE)
-      ctxBird.restore()
-      ctx.stroke()
+    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    ctxBird.save()
+    ctxBird.translate(position.x , position.y )
+    ctxBird.rotate(degree)
+    ctxBird.drawImage(birdIcon, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
+    ctxBird.restore()
+    birdPosition.angle = newAngle
+  }
 
-      this.setState({
-        startPosition: {
-          x: newX,
-          y: newY,
-          angle: this.state.startPosition.angle,
-        }
-      })
-
-    } else if (direction === "right" || direction === "rt") {
-      let newAngle = this.state.startPosition.angle + distance
-      const degree = (newAngle * Math.PI) / 180
-
-      ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctxBird.save()
-      ctxBird.translate(this.state.startPosition.x , this.state.startPosition.y )
-      ctxBird.rotate(degree)
-      ctxBird.drawImage(birdIcon, -BIRD_SIZE/2, -BIRD_SIZE/2, BIRD_SIZE, BIRD_SIZE)
-      ctxBird.restore()
-
-      this.setState({
-        startPosition: {
-          x: this.state.startPosition.x,
-          y: this.state.startPosition.y,
-          angle: newAngle,
-        }
-      })
-
-    } else if (direction === "left" || direction === "lt") {
-      let newAngle = this.state.startPosition.angle - distance
-      const degree = (newAngle * Math.PI) / 180
-
-      ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctxBird.save()
-      ctxBird.translate(this.state.startPosition.x , this.state.startPosition.y )
-      ctxBird.rotate(degree)
-      ctxBird.drawImage(birdIcon, -BIRD_SIZE/2, -BIRD_SIZE/2, BIRD_SIZE, BIRD_SIZE)
-      ctxBird.restore()
-
-      this.setState({
-        startPosition: {
-          x: this.state.startPosition.x,
-          y: this.state.startPosition.y,
-          angle: newAngle,
-        }
-      })
-    } else if (direction === "home") {
-      ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
-      ctxBird.drawImage(birdIcon, CENTER.x - BIRD_SIZE / 2, CENTER.y - BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
-
-      this.setState({
-        startPosition: {
-          x: CENTER.x,
-          y: CENTER.y,
-          angle: 0,
-        }
-      })
-    } else {
-      alert("invalid command")
+  homeMove () {
+    ctxBird.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+    ctxBird.drawImage(birdIcon, CENTER.x - BIRD_SIZE / 2, CENTER.y - BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE)
+    birdPosition = {
+      x: CENTER.x,
+      y: CENTER.y,
+      angle: STARTING_ANGLE,
     }
   }
 
   parseInput(userInput) {
-    const parsedInput = userInput.split(" ")
-    parsedInput[1] = parseInt(parsedInput[1], 10)
-    this.drawShape(parsedInput)
+    const lineBreakParse = userInput.split("\n")
+    this.drawShape(lineBreakParse)
+  }
+  // commands still needed:
+  // repeat
+  // for
+  // pen up
+  // pen down
+
+  drawShape(lineBreakParse) {
+    for (var i = 0; i < lineBreakParse.length; i++) {
+      let parsedInput = lineBreakParse[i].split(" ")
+      let distance = parseInt(parsedInput[1], 10)
+      let direction = parsedInput[0]
+
+      if (direction === "forward" || direction === "fd") {
+        this.forwardMove(birdPosition, distance)
+      } else if (direction === "back" || direction === "bk") {
+        this.backMove(birdPosition, distance)
+      } else if (direction === "right" || direction === "rt") {
+        this.rightRotate(birdPosition, distance)
+      } else if (direction === "left" || direction === "lt") {
+        this.leftRotate(birdPosition, distance)
+      } else if (direction == "home") {
+        this.homeMove()
+      } else if (direction == "clear") {
+        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
+        this.homeMove()
+      } else {
+        alert(direction + "is an invalid command")
+      }
+    }
+    this.setState({
+      startPosition: {
+        x: birdPosition.x,
+        y: birdPosition.y,
+        angle: birdPosition.angle,
+      }
+    })
   }
 
   submitUserInput () {
