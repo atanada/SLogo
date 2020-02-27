@@ -7,7 +7,8 @@
     "start": "webpack --mode development",
     "build": "webpack --mode production",
     "dev-server": "webpack-dev-server",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "gh-pages -d public"
   },
   "repository": {
     "type": "git",
@@ -29,6 +30,7 @@
     "babel-preset-latest": "^6.24.1",
     "css-loader": "^3.4.1",
     "file-loader": "^5.0.2",
+    "gh-pages": "^2.2.0",
     "react-hot-loader": "^4.12.18",
     "react-svg-loader": "^3.0.3",
     "style-loader": "^1.1.2",
