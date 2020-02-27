@@ -149,12 +149,12 @@ class Display extends React.Component {
             userCommandsNotParsed.indexOf("repeat") + "repeat".length + 1,
             userCommandsNotParsed.indexOf("["),
           )
+        if (!/\d/.test(preNumRepeats)) {
+          alert("Missing number of repeats")
+        }
         let numberRepeats = parseInt(preNumRepeats, 10)
         let beingIndex = userCommandsNotParsed.indexOf("[" || "[ ") + 1
         let endIndex = userCommandsNotParsed.indexOf("]")
-        typeof numberRepeats != "number"
-          ? alert("invalid 'repeat' command format")
-          : null
         const repeatCommands = userCommandsNotParsed.slice(beingIndex, endIndex)
         userCommands = [
           ...Array(numberRepeats).fill(repeatCommands)
