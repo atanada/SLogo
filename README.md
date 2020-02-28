@@ -5,6 +5,9 @@ A simple version of the coding language, Logo. This project was built to replica
 ### Goals
 This is an independent, personal project to not only learn best practices in component management and architecture, but also to build a complete app using React.
 
+### Setup
+Visit https://atanada.github.io/SLogo/ to use.
+
 ### Available commands
 Move the bird around and draw shapes using the following commands:
 * forward
