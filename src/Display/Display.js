@@ -86,7 +86,7 @@ class Display extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
-      userInput: "repeat 4 [forward 90 right 90]", // TODO - remove after testing
+      userInput: "",
       userHistoryList: [],
       startPosition: {
         x: CENTER.x,
