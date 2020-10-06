@@ -15,6 +15,7 @@ Move the bird around and draw shapes using the following commands:
 * right
 * left 
 * repeat
+* clear (clears canvas)
 
 Example command: `repeat 4 [forward 100 right 90]` \
 This command tells the bird to do the combination of move forward by 100 paces then turn right 90 degrees 4 times.
