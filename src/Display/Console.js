@@ -11,7 +11,7 @@ class Console extends React.Component {
           placeholder="enter a command..."
           autoFocus={true}
           value={this.context.statefulValues.userInput}
-          onChange={() => this.context.updateUserInput()}
+          onChange={() => this.context.updateUserInput(event)}
         >
         </textarea>
         <button

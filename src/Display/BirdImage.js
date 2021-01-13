@@ -4,6 +4,7 @@ import {Point} from './Point'
 
 const birdIcon = new Image()
 birdIcon.src = birdImgPath
+
 let Bird = {
   x: CENTER.x,
   y: CENTER.y,
@@ -31,7 +32,7 @@ let Bird = {
   getPosition: () => {
     return new Point(Bird.x, Bird.y)
   },
-
+  // get bird position after displacement
   moveForward: (distance) => {
     const degree = Bird.getAngleInRadians()
     let xDist = distance * Math.sin(degree)

@@ -9,6 +9,7 @@ import {BIRD_SIZE, CANVAS_WIDTH, CANVAS_HEIGHT, STARTING_ANGLE, CENTER} from './
 import {birdIcon, Bird} from './BirdImage'
 import {Point} from './Point'
 
+// layer used to draw lines
 class BaseLayer {
   init(context) {
     this.context = context
@@ -27,6 +28,8 @@ class BaseLayer {
 }
 const baseLayer = new BaseLayer()
 
+// canvas with only bird icon
+// bird moves separately from drawn lines
 class BirdLayer {
   init(context) {
     this.context = context
@@ -46,7 +49,7 @@ class BirdLayer {
         BIRD_SIZE, BIRD_SIZE)
     this.context.restore()
   }
-
+  // when bird moves, clear 'old bird' image and draw an updated bird 
   redraw() {
     this.context.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT)
     this.draw()
@@ -96,16 +99,17 @@ class Display extends React.Component {
     }
     this.updateUserInput = this.updateUserInput.bind(this)
     this.submitUserInput = this.submitUserInput.bind(this)
-    this.drawShape = this.drawShape.bind(this)
     this.parseInput = this.parseInput.bind(this)
   }
 
-  updateUserInput () {
+  updateUserInput (event) {
     this.setState({
       userInput: event.target.value
     })
   }
 
+  // get new position for bird
+  // create drawing on canvas for move command
   forwardMove(distance) {
     const originalPosition = Bird.getPosition()
     Bird.moveForward(distance)
@@ -134,30 +138,29 @@ class Display extends React.Component {
   }
 
   parseInput(userInput) {
-    const lineBreakParse = userInput.split("\n")
-    this.drawShape(lineBreakParse)
-  }
+    const commandList = userInput.split("\n")
+    let userCommandsNotParsed = commandList
+    let userCommands = commandList
 
-  drawShape(lineBreakParse) {
-    let userCommandsNotParsed = lineBreakParse
-    let userCommands = lineBreakParse
-    for (let commandIndex = 0; commandIndex < lineBreakParse.length; commandIndex++) {
-      if (lineBreakParse[commandIndex].includes("repeat")) {
-        userCommandsNotParsed = lineBreakParse.join(" ")
-        const preNumRepeats =
+    // find repeat commands to parse
+    for (let lineNum = 0; lineNum < commandList.length; lineNum++) {
+      if (commandList[lineNum].includes("repeat")) {
+        userCommandsNotParsed = commandList.join(" ")
+        // number of times to repeat a command
+        const repeatNumStr =
           userCommandsNotParsed.slice(
             userCommandsNotParsed.indexOf("repeat") + "repeat".length + 1,
             userCommandsNotParsed.indexOf("["),
           )
-        if (!/\d/.test(preNumRepeats)) {
+        if (!/\d/.test(repeatNumStr)) {
           alert("Missing number of repeats")
         }
-        let numberRepeats = parseInt(preNumRepeats, 10)
-        let beingIndex = userCommandsNotParsed.indexOf("[" || "[ ") + 1
-        let endIndex = userCommandsNotParsed.indexOf("]")
-        const repeatCommands = userCommandsNotParsed.slice(beingIndex, endIndex)
+        const repeatNumInt = parseInt(repeatNumStr, 10)
+        let startInd = userCommandsNotParsed.indexOf("[") + 1
+        let endInd = userCommandsNotParsed.indexOf("]")
+        const repeatCommands = userCommandsNotParsed.slice(startInd, endInd)
         userCommands = [
-          ...Array(numberRepeats).fill(repeatCommands)
+          ...Array(repeatNumInt).fill(repeatCommands)
         ]
         break
       }
